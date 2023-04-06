@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\DateHelper;
 use App\Http\Controllers\Controller;
 use App\Models\BookedSpa;
+use App\Repository\SpaRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,16 +25,8 @@ class BookedSpaController extends Controller
         $hours = $request->post('hours');
         DateHelper::checkIfTimePassed($day, $hours);
         $employeeId = $request->post('employee');
-        $bookedSpa = BookedSpa::where('day', $day)->where('hours', $hours)->where('employee', $employeeId)->get();;
-        if (!$bookedSpa->count()) {
-            $user = Auth::user();
-            BookedSpa::create([
-                'booked_by' => $user['firstname'] . ' ' . $user['lastname'],
-                'day' => $day,
-                'hours' => $hours,
-                'employee' => $employeeId,
-                'user_id' => $user['id'],
-            ]);
+        if (!SpaRepository::isBooked($day, $hours, $employeeId)) {
+            SpaRepository::createReservation($day, $hours, $employeeId);
             $success = true;
             $message = 'success';
         } else {

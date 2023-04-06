@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\DateHelper;
 use App\Http\Controllers\Controller;
 use App\Models\BookedBowling;
-use App\Models\BookedSpa;
-use Carbon\Carbon;
+use App\Repository\BowlingRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,23 +25,10 @@ class BookedBowlingController extends Controller
     {
         $track = $request->post('track');
         $day = $request->post('day');
-        $today = Carbon::now()->format('Y-m-d');
-        $nowHour = Carbon::now()->format('H:i');
         $hours = $request->post('hours');
-        $startHour = trim(explode('-', $hours)[0]);
-        if (strtotime($nowHour) >= strtotime($startHour) && $today == $day) {
-            return response()->json(['success' => false, 'message' => 'Niestety godziny, w których chcesz zarezerwować juz upłynęły']);
-        }
-        $bookedBowling = BookedBowling::where('track', $track)->where('hours', $hours)->where('day', $day)->get();;
-        if (!$bookedBowling->count()) {
-            $user = Auth::user();
-            BookedBowling::create([
-                'booked_by' => $user['firstname'] . ' ' . $user['lastname'],
-                'track' => $track,
-                'day' => $day,
-                'hours' => $hours,
-                'user_id' => Auth::id()
-            ]);
+        DateHelper::checkIfTimePassed($day, $hours);
+        if (!BowlingRepository::isBooked($track,$day,$hours)) {
+            BowlingRepository::createReservation($track,$day,$hours);
             $success = true;
             $message = 'success';
         } else {
