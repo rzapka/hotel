@@ -2,7 +2,6 @@ Aby odpalic projekt nalezy na phpmyadmin (root bez hasla) zrobic baze o nazwie h
 
 Aplikacja dziala bez przeladowania strony
 
-Moga wystepowac male bugi bo sobie refaktoruje kod zeby byl ladniejszy :D
 
 komendy:
 1. composer install
